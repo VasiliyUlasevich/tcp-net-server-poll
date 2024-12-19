@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netdb.h>
 #include <errno.h>
 #include <time.h>
 #include <sys/ioctl.h>
@@ -75,8 +76,8 @@ int init_listen_server(char *address, uint16_t port) {
     memset((void *)&socket_address, 0, sizeof(socket_address));
     socket_address.sin_addr.s_addr = inet_addr(address);
 
-    if (!inet_aton(address, &socket_address.sin_addr)) {
-        fprintf(stderr,"ERROR: inet_addr()\n");
+    if (inet_pton(AF_INET, address, &socket_address.sin_addr) < 1) {
+        fprintf(stderr,"ERROR: inet_pton()\n");
         errno = EFAULT;
         return 0;
     }
@@ -158,9 +159,9 @@ void start_server_loop(int server_socket, connection_handler_p handler) {
                             handler(&pfds[i].fd);
                             if (i < opened_fds - 1) {
                                 pfds[i] = pfds[opened_fds - 1];
+                                --i;
                             }
                             --opened_fds;
-                            --i;
                             continue;
                         }
                     } else {
@@ -173,6 +174,7 @@ void start_server_loop(int server_socket, connection_handler_p handler) {
                             close(pfds[i].fd);
                             if (i < opened_fds - 1) {
                                 pfds[i] = pfds[opened_fds - 1];
+                                --i;
                             }
                             --opened_fds;
                         }

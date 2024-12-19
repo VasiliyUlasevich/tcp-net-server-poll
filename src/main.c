@@ -37,6 +37,7 @@ void* client_connection_handler(void* client_socket_p) {
         fprintf(stderr, "ERROR: close()\n");
         perror("Close socket error");
     }
+    return NULL;
 }
 
 int main(int argc, char *argv[]) {
